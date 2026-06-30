@@ -535,20 +535,20 @@ SCertInfo Verify_CertInfo = { 0 };
 
 _FX NTSTATUS KphValidateCertificate()
 {
-	// ----------------- 注入解锁代码 开始 -----------------
+    // ----------------- 注入解锁代码 开始 -----------------
     // 1. 清空并初始化全局证书结构体
     RtlZeroMemory(&Verify_CertInfo, sizeof(Verify_CertInfo));
     
-    // 2. 赋予最高级别的证书类型 (3 通常对应 eCertEternal 永久商业/企业级)
-    Verify_CertInfo.Type = 3; 
+    // 2. 赋予最高级别的证书类型 (使用源码自带的枚举值 eCertEternal，即永恒/企业版)
+    Verify_CertInfo.type = eCertEternal; 
     
-    // 3. 设置过期时间为无限大 (NT 时间戳最大值)
-    Verify_CertInfo.Expiration.QuadPart = 0x7FFFFFFFFFFFFFFF; 
+    // 3. 赋予最高级别的特权等级 (eCertMaxLevel，放行所有功能限制)
+    Verify_CertInfo.level = eCertMaxLevel;
     
-    // 4. 开启所有高级特性掩码 (全 1 放行所有功能限制)
-    Verify_CertInfo.Features = 0xFFFFFFFF; 
+    // 注意：当前版本的 _SCertInfo 结构体中并无 Expiration 和 Features 成员
+    // 只要 type 和 level 顶格拉满，内核就已经判定你是最高等级的商业永久授权，无需额外设置时间
     
-    // 5. 直接返回成功，不再向下读取 Certificate.dat
+    // 4. 直接返回成功，不再向下读取 Certificate.dat
     return STATUS_SUCCESS;
     // ----------------- 注入解锁代码 结束 -----------------
     BOOLEAN CertDbg = FALSE;
