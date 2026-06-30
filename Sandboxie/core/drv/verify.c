@@ -535,6 +535,22 @@ SCertInfo Verify_CertInfo = { 0 };
 
 _FX NTSTATUS KphValidateCertificate()
 {
+	// ----------------- 注入解锁代码 开始 -----------------
+    // 1. 清空并初始化全局证书结构体
+    RtlZeroMemory(&Verify_CertInfo, sizeof(Verify_CertInfo));
+    
+    // 2. 赋予最高级别的证书类型 (3 通常对应 eCertEternal 永久商业/企业级)
+    Verify_CertInfo.Type = 3; 
+    
+    // 3. 设置过期时间为无限大 (NT 时间戳最大值)
+    Verify_CertInfo.Expiration.QuadPart = 0x7FFFFFFFFFFFFFFF; 
+    
+    // 4. 开启所有高级特性掩码 (全 1 放行所有功能限制)
+    Verify_CertInfo.Features = 0xFFFFFFFF; 
+    
+    // 5. 直接返回成功，不再向下读取 Certificate.dat
+    return STATUS_SUCCESS;
+    // ----------------- 注入解锁代码 结束 -----------------
     BOOLEAN CertDbg = FALSE;
 
     static const WCHAR *path_cert = L"%s\\Certificate.dat";
